@@ -36,10 +36,10 @@ resource "null_resource" "docker_build_push" {
       docker build -t ${var.image_name} .
       
       # Tag the image
-      docker tag ${var.image_name}:latest ${aws_ecr_repository.app_repo.repository_url}:latest
+      docker tag ${var.image_name}:latest ${aws_ecr_repository.app_repo.repository_url}:V1
       
       # Push the image
-      docker push ${aws_ecr_repository.app_repo.repository_url}:latest
+      docker push ${aws_ecr_repository.app_repo.repository_url}:V1
     EOT
   }
 
