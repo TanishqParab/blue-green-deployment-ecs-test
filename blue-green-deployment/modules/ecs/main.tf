@@ -172,7 +172,7 @@ resource "aws_iam_role_policy" "ecs_logs_policy" {
 resource "aws_ecs_task_definition" "blue_task" {
   family                   = var.task_family
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = var.task_role_arn
+  task_role_arn            = var.task_role_arn != null ? var.task_role_arn : aws_iam_role.ecs_task_execution_role.arn
   network_mode             = var.network_mode
   requires_compatibilities = var.requires_compatibilities
   cpu                      = var.cpu
@@ -254,7 +254,7 @@ resource "aws_ecs_service" "blue_service" {
 resource "aws_ecs_task_definition" "green_task" {
   family                   = "${var.task_family}-green"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = var.task_role_arn
+  task_role_arn            = var.task_role_arn != null ? var.task_role_arn : aws_iam_role.ecs_task_execution_role.arn
   network_mode             = var.network_mode
   requires_compatibilities = var.requires_compatibilities
   cpu                      = var.cpu
