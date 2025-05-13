@@ -65,9 +65,9 @@ output "ecr_repository_url" {
   value       = module.ecr.repository_url
 }
 
-output "ecr_repository_arn" {
-  description = "The ARN of the ECR repository"
-  value       = module.ecr.repository_arn
+output "ecr_repository_name" {
+  description = "The name of the ECR repository"
+  value       = module.ecr.repository_name
 }
 
 output "image_url" {
@@ -99,9 +99,9 @@ output "green_service_id" {
   value       = module.ecs.green_service_id
 }
 
-output "task_definition_arn" {
-  description = "The ARN of the task definition"
-  value       = module.ecs.task_definition_arn
+output "blue_task_definition_arn" {
+  description = "The ARN of the blue task definition"
+  value       = module.ecs.blue_task_definition_arn
 }
 
 output "execution_role_arn" {
