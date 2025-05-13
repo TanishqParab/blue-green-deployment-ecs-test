@@ -11,6 +11,7 @@ variable "task_family" {
 variable "task_role_arn" {
   description = "ARN of the IAM role for the task"
   type        = string
+  default     = null
 }
 
 variable "cpu" {
