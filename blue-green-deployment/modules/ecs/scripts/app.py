@@ -15,7 +15,7 @@ def home():
             </head>
             <body>
                 <h1>Hello, Blue-Green Deployment on ECS</h1>
-                <div class="version">V34</div>
+                <div class="version">V38</div>
             </body>
         </html>
     '''
