@@ -167,7 +167,7 @@ module "alb" {
   additional_tags        = merge(var.aws.tags, var.additional_tags)
 }
 
-/*
+
 ############################################
 # ECR Module
 ############################################
@@ -295,8 +295,8 @@ module "ecs" {
 
   depends_on = [module.alb, module.ecr]
 }
-*/
 
+/*
 
 module "ec2" {
   source             = "./modules/ec2"
@@ -320,3 +320,4 @@ module "asg" {
   max_size              = var.asg.max_size
 }
 
+*/
