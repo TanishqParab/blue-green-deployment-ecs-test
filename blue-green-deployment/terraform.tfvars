@@ -120,7 +120,7 @@ alb = {
   green_target_group_name = "green-tg"
   target_group_port       = 5000
   target_group_protocol   = "HTTP"
-  target_type             = "ip"
+  target_type             = "instance"
   deregistration_delay    = 300
 
   # Health check settings
