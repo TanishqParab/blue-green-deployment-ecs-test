@@ -175,7 +175,7 @@ ecr = {
   # Basic ECR settings
   repository_name      = "blue-green-app"
   image_name           = "blue-green-app"
-  skip_docker_build    = false
+  skip_docker_build    = true
   image_tag_mutability = "MUTABLE"
   scan_on_push         = true
 
