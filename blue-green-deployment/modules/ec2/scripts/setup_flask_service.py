@@ -28,6 +28,14 @@ if os.path.exists(f"/home/ec2-user/{file_name}"):
     print(f"First 10 lines of {file_name}:")
     os.system(f"head -n 10 /home/ec2-user/{file_name}")
 
+# Stop all other Flask services
+print("Stopping all other Flask services...")
+os.system("sudo systemctl list-units --type=service --all | grep flask-app | grep -v flask-app-" + app_name + " | awk '{print $1}' | xargs -r sudo systemctl stop")
+
+# Kill any process using port 80
+print("Killing any process using port 80...")
+os.system("sudo fuser -k 80/tcp")
+
 service_content = f"""[Unit]
 Description=Flask App for {app_name}
 After=network.target
