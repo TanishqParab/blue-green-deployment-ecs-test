@@ -192,7 +192,7 @@ module "ecr" {
   dockerfile_path    = "${path.module}/modules/ecs/scripts/Dockerfile"
   image_name         = var.ecr.image_name
   skip_docker_build  = var.ecr.skip_docker_build
-  image_tag          = var.ecr.image_tag
+  image_tag          = "latest" # Ensure this is set to "latest"
   docker_username    = var.ecr.docker_username
   docker_build_args  = var.ecr.docker_build_args
 
@@ -212,6 +212,7 @@ module "ecr" {
   terraform_managed = var.ecr.terraform_managed
   additional_tags   = merge(var.aws.tags, var.additional_tags)
 }
+
 
 
 ############################################
