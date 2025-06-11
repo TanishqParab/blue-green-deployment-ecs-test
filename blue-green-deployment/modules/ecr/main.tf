@@ -46,16 +46,10 @@ resource "null_resource" "docker_build_push" {
       # Build the Docker image
       docker build -t ${each.value.image_name} ${var.docker_build_args} --build-arg APP_NAME=${replace(each.key, "app_", "")} .
       
-      # Tag the image with app-specific tag
-      docker tag ${each.value.image_name}:${each.value.image_tag} ${aws_ecr_repository.app_repo.repository_url}:${each.key}
-      
-      # Also tag the image with "latest" tag
+      # Tag the image with app-specific latest tag
       docker tag ${each.value.image_name}:${each.value.image_tag} ${aws_ecr_repository.app_repo.repository_url}:${each.key}-latest
       
-      # Push the app-specific tag
-      docker push ${aws_ecr_repository.app_repo.repository_url}:${each.key}
-      
-      # Push the latest tag
+      # Push the app-specific latest tag
       docker push ${aws_ecr_repository.app_repo.repository_url}:${each.key}-latest
     EOT
   }
