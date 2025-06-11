@@ -192,7 +192,7 @@ module "ecr" {
   dockerfile_path    = "${path.module}/modules/ecs/scripts/Dockerfile"
   image_name         = var.ecr.image_name
   skip_docker_build  = var.ecr.skip_docker_build
-  image_tag          = "latest" # Ensure this is set to "latest"
+  image_tag          = var.ecr.image_tag
   docker_username    = var.ecr.docker_username
   docker_build_args  = var.ecr.docker_build_args
 
