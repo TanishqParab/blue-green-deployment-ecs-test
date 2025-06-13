@@ -310,21 +310,21 @@ def create_post():
             "comments": []
         }
         blog_posts.insert(0, new_post)  # Add to the beginning of the list
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
 @app.route('/app2/post/<post_id>')
 def view_post(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post:
         return render_template_string(BLOG_TEMPLATE, post=post, view_post=True, form_visible=False, search_query=None, app_prefix=app_prefix)
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
 @app.route('/app2/edit_post/<post_id>')
 def edit_post_form(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post:
         return render_template_string(BLOG_TEMPLATE, post=post, form_visible=True, view_post=False, search_query=None, app_prefix=app_prefix)
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
 @app.route('/app2/edit_post/<post_id>', methods=['POST'])
 def edit_post(post_id):
@@ -333,13 +333,13 @@ def edit_post(post_id):
         post["title"] = request.form.get('title')
         post["content"] = request.form.get('content')
         post["author"] = request.form.get('author')
-    return redirect(url_for('view_post', post_id=post_id))
+    return redirect(app_prefix + '/post/' + post_id)
 
 @app.route('/app2/delete_post/<post_id>')
 def delete_post(post_id):
     global blog_posts
     blog_posts = [p for p in blog_posts if p["id"] != post_id]
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
 @app.route('/app2/add_comment/<post_id>', methods=['POST'])
 def add_comment(post_id):
@@ -355,7 +355,7 @@ def add_comment(post_id):
             "date": datetime.datetime.now().strftime("%Y-%m-%d")
         }
         post["comments"].append(comment)
-    return redirect(url_for('view_post', post_id=post_id))
+    return redirect(app_prefix + '/post/' + post_id)
 
 @app.route('/app2/search')
 def search():
@@ -367,7 +367,7 @@ def search():
                   query in p["author"].lower()]
         return render_template_string(BLOG_TEMPLATE, posts=results, form_visible=False, 
                                      view_post=False, search_query=query, app_prefix=app_prefix)
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
 @app.route('/health')
 @app.route('/app2/health')
