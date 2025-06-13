@@ -28,7 +28,7 @@ BLOG_TEMPLATE = '''
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Blue-Green Blog</title>
+        <title>Tech Blogs</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {
@@ -175,9 +175,8 @@ BLOG_TEMPLATE = '''
         </style>
     </head>
     <body>
-        <div class="version-badge">V25</div>
         <header>
-            <h1>Blue-Green Blog</h1>
+            <h1>Tech Blogs</h1>
             <p>A demonstration of blue-green deployment on AWS ECS</p>
         </header>
         <div class="container">
