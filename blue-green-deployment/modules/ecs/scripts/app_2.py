@@ -187,18 +187,18 @@ BLOG_TEMPLATE = '''
             
             {% if search_query %}
                 <h2>Search Results for: "{{ search_query }}"</h2>
-                <a href="/" class="btn">Back to All Posts</a>
+                <a href="{{ app_prefix }}/" class="btn">Back to All Posts</a>
             {% endif %}
             
             {% if not form_visible and not view_post %}
-                <form class="search-form" action="/search" method="get">
+                <form class="search-form" action="{{ app_prefix }}/search" method="get">
                     <input type="text" name="q" placeholder="Search posts..." value="{{ search_query or '' }}">
                     <button type="submit" class="btn">Search</button>
                 </form>
             {% endif %}
             
             {% if form_visible %}
-                <form method="post" action="{{ '/edit_post/' + post.id if post else '/create_post' }}">
+                <form method="post" action="{{ app_prefix + '/edit_post/' + post.id if post else app_prefix + '/create_post' }}">
                     <h2>{{ 'Edit' if post else 'Create New' }} Post</h2>
                     <div class="form-group">
                         <label for="title">Title:</label>
@@ -213,7 +213,7 @@ BLOG_TEMPLATE = '''
                         <textarea id="content" name="content" required>{{ post.content if post else '' }}</textarea>
                     </div>
                     <button type="submit" class="btn btn-success">{{ 'Update' if post else 'Publish' }} Post</button>
-                    <a href="{{ '/post/' + post.id if post else '/' }}" class="btn">Cancel</a>
+                    <a href="{{ app_prefix + '/post/' + post.id if post else app_prefix + '/' }}" class="btn">Cancel</a>
                 </form>
             {% elif view_post %}
                 <div class="blog-post">
@@ -223,9 +223,9 @@ BLOG_TEMPLATE = '''
                     </div>
                     <p>{{ post.content }}</p>
                     <div>
-                        <a href="/edit_post/{{ post.id }}" class="btn">Edit</a>
-                        <a href="/delete_post/{{ post.id }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
-                        <a href="/" class="btn">Back to All Posts</a>
+                        <a href="{{ app_prefix }}/edit_post/{{ post.id }}" class="btn">Edit</a>
+                        <a href="{{ app_prefix }}/delete_post/{{ post.id }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this post?')">Delete</a>
+                        <a href="{{ app_prefix }}/" class="btn">Back to All Posts</a>
                     </div>
                     
                     <div class="comment-section">
@@ -244,7 +244,7 @@ BLOG_TEMPLATE = '''
                             <p>No comments yet.</p>
                         {% endif %}
                         
-                        <form method="post" action="/add_comment/{{ post.id }}">
+                        <form method="post" action="{{ app_prefix }}/add_comment/{{ post.id }}">
                             <h4>Add a Comment</h4>
                             <div class="form-group">
                                 <label for="comment_author">Name:</label>
@@ -260,7 +260,7 @@ BLOG_TEMPLATE = '''
                 </div>
             {% else %}
                 <div style="margin-bottom: 20px;">
-                    <a href="/new_post" class="btn btn-success">Create New Post</a>
+                    <a href="{{ app_prefix }}/new_post" class="btn btn-success">Create New Post</a>
                 </div>
                 
                 {% if posts %}
@@ -274,7 +274,7 @@ BLOG_TEMPLATE = '''
                                 {% endif %}
                             </div>
                             <p>{{ post.content[:200] + '...' if post.content|length > 200 else post.content }}</p>
-                            <a href="/post/{{ post.id }}" class="btn">Read More</a>
+                            <a href="{{ app_prefix }}/post/{{ post.id }}" class="btn">Read More</a>
                         </div>
                     {% endfor %}
                 {% else %}
@@ -294,11 +294,11 @@ BLOG_TEMPLATE = '''
 def home():
     return render_template_string(BLOG_TEMPLATE, posts=blog_posts, form_visible=False, view_post=False, search_query=None, app_prefix=app_prefix)
 
-@app.route('/new_post')
+@app.route('/app2/new_post')
 def new_post():
-    return render_template_string(BLOG_TEMPLATE, posts=[], form_visible=True, post=None, view_post=False, search_query=None)
+    return render_template_string(BLOG_TEMPLATE, posts=[], form_visible=True, post=None, view_post=False, search_query=None, app_prefix=app_prefix)
 
-@app.route('/create_post', methods=['POST'])
+@app.route('/app2/create_post', methods=['POST'])
 def create_post():
     if request.method == 'POST':
         new_post = {
@@ -310,38 +310,38 @@ def create_post():
             "comments": []
         }
         blog_posts.insert(0, new_post)  # Add to the beginning of the list
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
-@app.route('/post/<post_id>')
+@app.route('/app2/post/<post_id>')
 def view_post(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post:
-        return render_template_string(BLOG_TEMPLATE, post=post, view_post=True, form_visible=False, search_query=None)
-    return redirect(url_for('home'))
+        return render_template_string(BLOG_TEMPLATE, post=post, view_post=True, form_visible=False, search_query=None, app_prefix=app_prefix)
+    return redirect(app_prefix + '/')
 
-@app.route('/edit_post/<post_id>')
+@app.route('/app2/edit_post/<post_id>')
 def edit_post_form(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post:
-        return render_template_string(BLOG_TEMPLATE, post=post, form_visible=True, view_post=False, search_query=None)
-    return redirect(url_for('home'))
+        return render_template_string(BLOG_TEMPLATE, post=post, form_visible=True, view_post=False, search_query=None, app_prefix=app_prefix)
+    return redirect(app_prefix + '/')
 
-@app.route('/edit_post/<post_id>', methods=['POST'])
+@app.route('/app2/edit_post/<post_id>', methods=['POST'])
 def edit_post(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post and request.method == 'POST':
         post["title"] = request.form.get('title')
         post["content"] = request.form.get('content')
         post["author"] = request.form.get('author')
-    return redirect(url_for('view_post', post_id=post_id))
+    return redirect(app_prefix + '/post/' + post_id)
 
-@app.route('/delete_post/<post_id>')
+@app.route('/app2/delete_post/<post_id>')
 def delete_post(post_id):
     global blog_posts
     blog_posts = [p for p in blog_posts if p["id"] != post_id]
-    return redirect(url_for('home'))
+    return redirect(app_prefix + '/')
 
-@app.route('/add_comment/<post_id>', methods=['POST'])
+@app.route('/app2/add_comment/<post_id>', methods=['POST'])
 def add_comment(post_id):
     post = next((p for p in blog_posts if p["id"] == post_id), None)
     if post and request.method == 'POST':
@@ -355,9 +355,9 @@ def add_comment(post_id):
             "date": datetime.datetime.now().strftime("%Y-%m-%d")
         }
         post["comments"].append(comment)
-    return redirect(url_for('view_post', post_id=post_id))
+    return redirect(app_prefix + '/post/' + post_id)
 
-@app.route('/search')
+@app.route('/app2/search')
 def search():
     query = request.args.get('q', '').lower()
     if query:
@@ -366,8 +366,8 @@ def search():
                   query in p["content"].lower() or 
                   query in p["author"].lower()]
         return render_template_string(BLOG_TEMPLATE, posts=results, form_visible=False, 
-                                     view_post=False, search_query=query)
-    return redirect(url_for('home'))
+                                     view_post=False, search_query=query, app_prefix=app_prefix)
+    return redirect(app_prefix + '/')
 
 @app.route('/health')
 @app.route('/app2/health')
