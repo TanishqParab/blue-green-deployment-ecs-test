@@ -3,6 +3,7 @@ import datetime
 import uuid
 
 app = Flask(__name__)
+app_prefix = "/app3"  # Path prefix for all routes
 
 # In-memory storage for blog posts
 blog_posts = [
@@ -27,7 +28,7 @@ BLOG_TEMPLATE = '''
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Blue-Green Blog</title>
+        <title>Tech Blogs</title>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <style>
             body {
@@ -174,15 +175,14 @@ BLOG_TEMPLATE = '''
         </style>
     </head>
     <body>
-        <div class="version-badge">V25</div>
         <header>
-            <h1>Blue-Green Blog</h1>
+            <h1>Tech Blogs</h1>
             <p>A demonstration of blue-green deployment on AWS ECS</p>
         </header>
         <div class="container">
             <ul class="nav-tabs">
-                <li><a href="/" class="{{ 'active' if not form_visible and not view_post and not search_query else '' }}">All Posts</a></li>
-                <li><a href="/new_post" class="{{ 'active' if form_visible else '' }}">New Post</a></li>
+                <li><a href="{{ app_prefix }}/" class="{{ 'active' if not form_visible and not view_post and not search_query else '' }}">All Posts</a></li>
+                <li><a href="{{ app_prefix }}/new_post" class="{{ 'active' if form_visible else '' }}">New Post</a></li>
             </ul>
             
             {% if search_query %}
@@ -292,7 +292,7 @@ BLOG_TEMPLATE = '''
 @app.route('/app3')
 @app.route('/app3/')
 def home():
-    return render_template_string(BLOG_TEMPLATE, posts=blog_posts, form_visible=False, view_post=False, search_query=None)
+    return render_template_string(BLOG_TEMPLATE, posts=blog_posts, form_visible=False, view_post=False, search_query=None, app_prefix=app_prefix)
 
 @app.route('/new_post')
 def new_post():
