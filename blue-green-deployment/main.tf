@@ -228,7 +228,7 @@ module "ecs" {
   cpu                 = var.ecs.cpu
   memory              = var.ecs.memory
   container_name      = var.ecs.container_name
-  container_image     = module.ecr.repository_url
+  container_image     = module.ecr.repository_urls["app_1"]
   container_port      = var.ecs.container_port
   desired_count       = var.ecs.desired_count
   execution_role_name = var.ecs.execution_role_name
