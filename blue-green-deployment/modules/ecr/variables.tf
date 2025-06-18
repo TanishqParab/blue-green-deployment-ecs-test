@@ -123,8 +123,8 @@ variable "app_id" {
 variable "application" {
   description = "Map of application configurations for multiple apps"
   type = map(object({
-    image_name      = string
-    image_tag       = string
+    image_name = string
+    image_tag  = string
   }))
   default = {}
 }
