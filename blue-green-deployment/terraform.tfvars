@@ -217,7 +217,7 @@ ecr = {
   repository_name      = "blue-green-app"
   image_tag_mutability = "MUTABLE"
   scan_on_push         = true
-  skip_docker_build    = false
+  skip_docker_build    = true
 
   # Docker build settings 
   image_name             = "blue-green-app"
@@ -353,7 +353,6 @@ ecs = {
   container_secrets = []
   task_volumes      = []
 }
-
 
 ############################################
 # EC2 Configuration
