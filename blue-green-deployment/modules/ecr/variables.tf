@@ -123,7 +123,6 @@ variable "app_id" {
 variable "application" {
   description = "Map of application configurations for multiple apps"
   type = map(object({
-    repository_name = string
     image_name      = string
     image_tag       = string
   }))
