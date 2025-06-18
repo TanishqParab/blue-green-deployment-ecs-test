@@ -30,8 +30,8 @@ variable "container_name" {
 }
 
 variable "container_image" {
-  description = "Docker image for the container"
-  type        = string
+  description = "Docker image for the container (can be a string or a map of app_name => image_url)"
+  type        = any
 }
 
 variable "container_port" {
