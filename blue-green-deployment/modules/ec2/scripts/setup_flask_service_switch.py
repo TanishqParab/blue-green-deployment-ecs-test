@@ -3,11 +3,11 @@ import sys
 import time
 import socket
 import urllib.request
+import glob
 
-# Function to fetch EC2 public IP using IMDSv2
+# Fetch public IP using IMDSv2
 def get_instance_public_ip():
     try:
-        # Step 1: Fetch token
         token_req = urllib.request.Request(
             "http://169.254.169.254/latest/api/token",
             method="PUT",
@@ -15,7 +15,6 @@ def get_instance_public_ip():
         )
         token = urllib.request.urlopen(token_req).read().decode()
 
-        # Step 2: Use token to get public IP
         metadata_req = urllib.request.Request(
             "http://169.254.169.254/latest/meta-data/public-ipv4",
             headers={"X-aws-ec2-metadata-token": token}
@@ -26,41 +25,60 @@ def get_instance_public_ip():
         print(f"⚠️ Failed to retrieve public IP: {e}")
         return None
 
-# Parse arguments
+# Input arguments
 app_name = sys.argv[1] if len(sys.argv) > 1 else "default"
 mode = sys.argv[2] if len(sys.argv) > 2 else "switch"
 
-# Normalize the systemd service name
-app_suffix = app_name.replace("app", "app_")  # ensures app2 → app_2
+app_suffix = app_name.replace("app", "app_")
 service_name = f"flask-app-{app_suffix}"
 service_file = f"/etc/systemd/system/{service_name}.service"
+app_script = ""
 
-# Determine app script
-if app_name.startswith("app") and len(app_name) > 3:
-    app_number = app_name[3:]
-    if mode == "rollback":
-        app_script = f"/home/ec2-user/app_app_{app_number}.py"
-        print("🛑 Rollback mode triggered")
+app_number = app_name[3:] if app_name.startswith("app") else app_name
+
+# App version resolution
+if mode == "rollback":
+    print("🛑 Rollback mode triggered")
+    version_files = sorted(
+        glob.glob(f"/home/ec2-user/app_{app_number}_v*.py"),
+        key=os.path.getmtime,
+        reverse=True
+    )
+    if len(version_files) >= 2:
+        app_script = version_files[1]  # Second newest = previous version
+        print(f"🔙 Rolling back to previous version: {app_script}")
+    elif version_files:
+        app_script = version_files[0]
+        print(f"⚠️ Only one version found. Using: {app_script}")
     else:
-        app_script = f"/home/ec2-user/app_{app_number}.py"
-        print("🚀 Switch mode triggered (default)")
+        print("❌ No versioned app files found for rollback.")
+        sys.exit(1)
 else:
-    app_script = f"/home/ec2-user/app_{app_name}.py"
+    print("🚀 Switch mode triggered")
+    version_files = sorted(
+        glob.glob(f"/home/ec2-user/app_{app_number}_v*.py"),
+        key=os.path.getmtime,
+        reverse=True
+    )
+    if version_files:
+        app_script = version_files[0]
+        print(f"✅ Latest app version detected: {app_script}")
+    else:
+        # Fallback to default
+        app_script = f"/home/ec2-user/app_{app_number}.py"
+        print(f"⚠️ No versioned files found. Using fallback: {app_script}")
 
 print(f"App name: {app_name}")
 print(f"Mode: {mode}")
-print(f"Selected app script: {app_script}")
+print(f"Using app script: {app_script}")
 
-# Kill anything on port 80
-print("⚠️ Killing existing processes on port 80 (if any)...")
-os.system("sudo fuser -k 80/tcp 2>/dev/null || true")
-
-# Stop and disable existing service
-print(f"🔻 Stopping old service: {service_name}")
+# Stop existing service
+print(f"🔻 Stopping existing service: {service_name}")
 os.system(f"sudo systemctl stop {service_name} 2>/dev/null || true")
 os.system(f"sudo systemctl disable {service_name} 2>/dev/null || true")
+os.system("sudo fuser -k 80/tcp 2>/dev/null || true")
 
-# Create systemd service
+# Create systemd service file
 service_content = f"""[Unit]
 Description=Flask App for {app_name} ({mode.capitalize()} Mode)
 After=network.target
@@ -78,18 +96,18 @@ WantedBy=multi-user.target
 try:
     with open(service_file, "w") as f:
         f.write(service_content)
-    print(f"✅ Created systemd service file: {service_file}")
+    print(f"✅ Created/Updated systemd service: {service_file}")
 except PermissionError:
-    print("❌ Permission denied: run this script with sudo")
+    print("❌ Permission denied: run with sudo")
     sys.exit(1)
 
-# Reload systemd and start service
+# Start updated service
 os.system("sudo systemctl daemon-reload")
 os.system(f"sudo systemctl enable {service_name}")
 os.system(f"sudo systemctl start {service_name}")
 
-# Health check on localhost
-print("⏳ Waiting for the app to start on port 80...")
+# Health check
+print("⏳ Waiting for app to start on port 80...")
 time.sleep(5)
 
 try:
@@ -101,9 +119,9 @@ try:
 except Exception as e:
     print(f"❌ Health check failed on localhost: {e}")
 
-# Public IP check (for LB/ALB testing)
+# Public IP info
 public_ip = get_instance_public_ip()
 if public_ip:
-    print(f"🌐 Try accessing your app at: http://{public_ip} (via browser or ALB)")
+    print(f"🌐 App should be accessible at: http://{public_ip}")
 else:
-    print("❌ Could not retrieve public IP (IMDSv2 may be restricted)")
+    print("❌ Could not retrieve public IP.")
