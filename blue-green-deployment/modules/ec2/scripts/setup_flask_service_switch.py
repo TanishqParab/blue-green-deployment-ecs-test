@@ -51,8 +51,14 @@ if mode == "rollback":
         app_script = version_files[0]
         print(f"⚠️ Only one version found. Using: {app_script}")
     else:
-        print("❌ No versioned app files found for rollback.")
-        sys.exit(1)
+        # Try fallback to Terraform-provisioned initial version
+        initial_file = f"/home/ec2-user/app_app_{app_number}.py"
+        if os.path.exists(initial_file):
+            app_script = initial_file
+            print(f"🕹️ No versioned files found. Falling back to initial version: {app_script}")
+        else:
+            print("❌ No rollback targets found: No versioned or initial files available.")
+            sys.exit(1)
 else:
     print("🚀 Switch mode triggered")
     version_files = sorted(
