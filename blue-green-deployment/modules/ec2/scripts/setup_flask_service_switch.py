@@ -4,16 +4,38 @@ import time
 import socket
 import urllib.request
 
+# Function to fetch EC2 public IP using IMDSv2
+def get_instance_public_ip():
+    try:
+        # Step 1: Fetch token
+        token_req = urllib.request.Request(
+            "http://169.254.169.254/latest/api/token",
+            method="PUT",
+            headers={"X-aws-ec2-metadata-token-ttl-seconds": "21600"}
+        )
+        token = urllib.request.urlopen(token_req).read().decode()
+
+        # Step 2: Use token to get public IP
+        metadata_req = urllib.request.Request(
+            "http://169.254.169.254/latest/meta-data/public-ipv4",
+            headers={"X-aws-ec2-metadata-token": token}
+        )
+        public_ip = urllib.request.urlopen(metadata_req).read().decode()
+        return public_ip
+    except Exception as e:
+        print(f"⚠️ Failed to retrieve public IP: {e}")
+        return None
+
 # Parse arguments
 app_name = sys.argv[1] if len(sys.argv) > 1 else "default"
-mode = sys.argv[2] if len(sys.argv) > 2 else "switch"  # default to switch
+mode = sys.argv[2] if len(sys.argv) > 2 else "switch"
 
 # Normalize the systemd service name
 app_suffix = app_name.replace("app", "app_")  # ensures app2 → app_2
 service_name = f"flask-app-{app_suffix}"
 service_file = f"/etc/systemd/system/{service_name}.service"
 
-# Determine script based on mode
+# Determine app script
 if app_name.startswith("app") and len(app_name) > 3:
     app_number = app_name[3:]
     if mode == "rollback":
@@ -38,7 +60,7 @@ print(f"🔻 Stopping old service: {service_name}")
 os.system(f"sudo systemctl stop {service_name} 2>/dev/null || true")
 os.system(f"sudo systemctl disable {service_name} 2>/dev/null || true")
 
-# Create systemd service file content
+# Create systemd service
 service_content = f"""[Unit]
 Description=Flask App for {app_name} ({mode.capitalize()} Mode)
 After=network.target
@@ -53,7 +75,6 @@ Restart=always
 WantedBy=multi-user.target
 """
 
-# Write the service file
 try:
     with open(service_file, "w") as f:
         f.write(service_content)
@@ -62,16 +83,15 @@ except PermissionError:
     print("❌ Permission denied: run this script with sudo")
     sys.exit(1)
 
-# Reload systemd, enable and start the service
+# Reload systemd and start service
 os.system("sudo systemctl daemon-reload")
 os.system(f"sudo systemctl enable {service_name}")
 os.system(f"sudo systemctl start {service_name}")
 
-# Wait and verify health
+# Health check on localhost
 print("⏳ Waiting for the app to start on port 80...")
 time.sleep(5)
 
-# Health check via localhost
 try:
     with urllib.request.urlopen("http://127.0.0.1", timeout=3) as response:
         if response.status == 200:
@@ -79,8 +99,11 @@ try:
         else:
             print(f"⚠️ App responded with status: {response.status}")
 except Exception as e:
-    print(f"❌ Health check failed: {e}")
+    print(f"❌ Health check failed on localhost: {e}")
 
-# Print expected LB access (assumes EC2 Public IP or ALB DNS is available)
-public_ip = urllib.request.urlopen("http://169.254.169.254/latest/meta-data/public-ipv4").read().decode()
-print(f"🌐 Try accessing your app at: http://{public_ip} (via browser or ALB)")
+# Public IP check (for LB/ALB testing)
+public_ip = get_instance_public_ip()
+if public_ip:
+    print(f"🌐 Try accessing your app at: http://{public_ip} (via browser or ALB)")
+else:
+    print("❌ Could not retrieve public IP (IMDSv2 may be restricted)")
